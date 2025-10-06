@@ -1,0 +1,29 @@
+{
+  "name": "pharma-stock-duplicate-finder",
+  "version": "1.0.0",
+  "description": "Pharmacy Stock Management & Duplicate File Finder with C backend",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "compile-c": "make all",
+    "clean": "make clean"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.4.4",
+    "astro": "^5.14.1",
+    "better-sqlite3": "^12.4.1",
+    "ffi-napi": "^4.0.3",
+    "ref-array-napi": "^1.2.2",
+    "ref-napi": "^3.0.3"
+  }
+}

@@ -1,0 +1,267 @@
+---
+import Layout from './layout.astro';
+---
+
+<Layout title="Products - PharmaStock">
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold text-gray-900">Products</h1>
+      <button onclick="openAddProductModal()" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-secondary transition-colors">
+        Add Product
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <div class="flex flex-wrap gap-4">
+        <select id="categoryFilter" class="border border-gray-300 rounded-md px-3 py-2">
+          <option value="">All Categories</option>
+        </select>
+        <select id="stockFilter" class="border border-gray-300 rounded-md px-3 py-2">
+          <option value="">All Stock Levels</option>
+          <option value="low">Low Stock (< 10)</option>
+          <option value="out">Out of Stock</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Search products..." class="border border-gray-300 rounded-md px-3 py-2 flex-1 min-w-64">
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading products...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div id="addProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Add New Product</h3>
+        </div>
+        <form id="addProductForm" class="px-6 py-4 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Name *</label>
+            <input type="text" name="name" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea name="description" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Category *</label>
+            <select name="category" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+              <option value="">Select Category</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Price *</label>
+              <input type="number" name="price" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Quantity *</label>
+              <input type="number" name="quantity" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Expiry Date</label>
+              <input type="date" name="expiryDate" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Supplier</label>
+              <input type="text" name="supplier" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+            </div>
+          </div>
+        </form>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+          <button onclick="closeAddProductModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+            Cancel
+          </button>
+          <button onclick="submitAddProduct()" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-secondary">
+            Add Product
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allProducts = [];
+    let categories = [];
+
+    async function loadProducts() {
+      try {
+        const response = await fetch('/api/products');
+        allProducts = await response.json();
+        displayProducts(allProducts);
+      } catch (error) {
+        console.error('Failed to load products:', error);
+        document.getElementById('productsTableBody').innerHTML = 
+          '<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Failed to load products</td></tr>';
+      }
+    }
+
+    async function loadCategories() {
+      try {
+        const response = await fetch('/api/categories');
+        categories = await response.json();
+        
+        // Populate category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        categoryFilter.innerHTML = '<option value="">All Categories</option>' +
+          categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+        
+        // Populate add product form category select
+        const formCategorySelect = document.querySelector('#addProductForm select[name="category"]');
+        formCategorySelect.innerHTML = '<option value="">Select Category</option>' +
+          categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      }
+    }
+
+    function displayProducts(products) {
+      const tbody = document.getElementById('productsTableBody');
+      
+      if (products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No products found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = products.map(product => `
+        <tr>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">${product.name}</div>
+            <div class="text-sm text-gray-500">${product.description || 'No description'}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.category}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${parseFloat(product.price).toFixed(2)}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+              product.quantity < 10 ? 'bg-red-100 text-red-800' : 
+              product.quantity < 25 ? 'bg-yellow-100 text-yellow-800' : 
+              'bg-green-100 text-green-800'
+            }">
+              ${product.quantity}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.expiry_date || 'N/A'}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <button onclick="updateQuantity(${product.id})" class="text-primary hover:text-secondary mr-3">
+              Update Qty
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterProducts() {
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      const stockFilter = document.getElementById('stockFilter').value;
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+      let filtered = allProducts;
+
+      if (categoryFilter) {
+        filtered = filtered.filter(p => p.category === categoryFilter);
+      }
+
+      if (stockFilter === 'low') {
+        filtered = filtered.filter(p => p.quantity < 10);
+      } else if (stockFilter === 'out') {
+        filtered = filtered.filter(p => p.quantity === 0);
+      }
+
+      if (searchInput) {
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(searchInput) ||
+          p.description.toLowerCase().includes(searchInput) ||
+          p.supplier.toLowerCase().includes(searchInput)
+        );
+      }
+
+      displayProducts(filtered);
+    }
+
+    function openAddProductModal() {
+      document.getElementById('addProductModal').classList.remove('hidden');
+    }
+
+    function closeAddProductModal() {
+      document.getElementById('addProductModal').classList.add('hidden');
+      document.getElementById('addProductForm').reset();
+    }
+
+    async function submitAddProduct() {
+      const form = document.getElementById('addProductForm');
+      const formData = new FormData(form);
+      
+      const productData = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        category: formData.get('category'),
+        price: parseFloat(formData.get('price')),
+        quantity: parseInt(formData.get('quantity')),
+        expiryDate: formData.get('expiryDate'),
+        supplier: formData.get('supplier')
+      };
+
+      try {
+        const response = await fetch('/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData)
+        });
+
+        if (response.ok) {
+          closeAddProductModal();
+          loadProducts();
+        } else {
+          alert('Failed to add product');
+        }
+      } catch (error) {
+        console.error('Failed to add product:', error);
+        alert('Failed to add product');
+      }
+    }
+
+    function updateQuantity(productId) {
+      const newQuantity = prompt('Enter new quantity:');
+      if (newQuantity !== null && !isNaN(newQuantity)) {
+        // Here you would typically make an API call to update the quantity
+        alert(`Quantity update for product ${productId} to ${newQuantity} would be implemented here`);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+    document.getElementById('stockFilter').addEventListener('change', filterProducts);
+    document.getElementById('searchInput').addEventListener('input', filterProducts);
+
+    // Load data when page loads
+    loadCategories();
+    loadProducts();
+  </script>
+</Layout>
