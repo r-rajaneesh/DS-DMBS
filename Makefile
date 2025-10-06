@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -fPIC -D_GNU_SOURCE
+CFLAGS = -Wall -Wextra -std=c99 -fPIC -D_GNU_SOURCE -Wno-deprecated-declarations
 LDFLAGS = -shared
 LIBS = -lsqlite3 -lssl -lcrypto
 

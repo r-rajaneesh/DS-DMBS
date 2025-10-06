@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Demo script for PharmaStock system
-const baseUrl = 'http://localhost:3000';
+const baseUrl = 'http://localhost:3001';
 
 async function demo() {
   console.log('🏥 PharmaStock System Demo\n');
@@ -73,7 +73,7 @@ async function demo() {
     });
     
     console.log('\n✅ Demo completed successfully!');
-    console.log('\n🌐 Open http://localhost:3000 in your browser to see the web interface');
+    console.log('\n🌐 Open http://localhost:3001 in your browser to see the web interface');
     
   } catch (error) {
     console.error('❌ Demo failed:', error.message);

@@ -52,6 +52,8 @@ A comprehensive system built with Bun, Astro, SQLite, and C that provides:
 
 3. **Compile C libraries:**
    ```bash
+   make all
+   # or
    bun run compile-c
    ```
 
@@ -63,7 +65,7 @@ A comprehensive system built with Bun, Astro, SQLite, and C that provides:
    ```
 
 2. **Open your browser:**
-   Navigate to `http://localhost:3000`
+   Navigate to `http://localhost:3000` (or the port shown in the terminal)
 
 3. **Add sample data:**
    Click "Add Sample Data" on the dashboard to populate the database with example products

@@ -1,5 +1,4 @@
 import { pharmacyLib } from './ffi-bindings';
-import { spawn } from 'child_process';
 
 export interface Product {
   id: number;
@@ -48,16 +47,7 @@ export class PharmacyService {
     }
 
     try {
-      const result = pharmacyLib.add_product(
-        name,
-        description,
-        category,
-        price,
-        quantity,
-        expiryDate,
-        supplier
-      );
-      return result === 1;
+      return await pharmacyLib.addProduct(name, description, category, price, quantity, expiryDate, supplier);
     } catch (error) {
       console.error('Failed to add product:', error);
       return false;
@@ -84,46 +74,7 @@ export class PharmacyService {
     }
 
     try {
-      // Use child process to execute C program and capture output
-      return new Promise((resolve, reject) => {
-        const child = spawn('/workspace/build/pharmacy_stock', [], {
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-
-        let output = '';
-        let errorOutput = '';
-
-        child.stdout.on('data', (data) => {
-          output += data.toString();
-        });
-
-        child.stderr.on('data', (data) => {
-          errorOutput += data.toString();
-        });
-
-        child.on('close', (code) => {
-          if (code === 0) {
-            // Extract JSON from the output (skip the "Sample products added..." line)
-            const lines = output.split('\n');
-            const jsonStart = lines.findIndex(line => line.trim().startsWith('['));
-            if (jsonStart !== -1) {
-              const jsonLines = lines.slice(jsonStart);
-              const jsonOutput = jsonLines.join('\n');
-              resolve(jsonOutput);
-            } else {
-              resolve('[]');
-            }
-          } else {
-            console.error('C program error:', errorOutput);
-            resolve('[]');
-          }
-        });
-
-        child.on('error', (error) => {
-          console.error('Failed to execute C program:', error);
-          resolve('[]');
-        });
-      });
+      return await pharmacyLib.getAllProducts();
     } catch (error) {
       console.error('Failed to get all products:', error);
       return '[]';

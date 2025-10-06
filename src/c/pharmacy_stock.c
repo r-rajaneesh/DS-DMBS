@@ -133,7 +133,7 @@ int update_product_quantity(int product_id, int new_quantity) {
 }
 
 // Get all products (callback for JSON output)
-int get_all_products_callback(void *data, int argc, char **argv, char **azColName) {
+int get_all_products_callback(void *data __attribute__((unused)), int argc, char **argv, char **azColName) {
     printf("{\n");
     for (int i = 0; i < argc; i++) {
         printf("  \"%s\": \"%s\"%s\n", azColName[i], argv[i] ? argv[i] : "null", 
@@ -244,7 +244,7 @@ void cleanup_pharmacy() {
 }
 
 // Main function for testing
-int main(int argc, char *argv[]) {
+int main(int argc __attribute__((unused)), char *argv[] __attribute__((unused))) {
     if (!init_pharmacy_database()) {
         return 1;
     }
